@@ -93,7 +93,16 @@ High-level flow:
 Checkout latency and availability do not depend on Cloud SQL.
 
 
-5. Key Features
+5. Tech Stack
+
+- Backend: Python (Flask), Shopify CarrierService REST API  
+- Infra: Google Cloud Run, Cloud Load Balancing, Cloud Scheduler  
+- Data: Google Sheets (gspread + Application Default Credentials),  
+  Cloud Storage (cache snapshots), Cloud SQL (PostgreSQL – analytics only)  
+- Security & Auth: IAM Service Account, HMAC verification, environment-based secrets
+
+
+6. Key Features
 
 - Cache-first design
   - All rate calculations use in-memory data.
@@ -125,7 +134,7 @@ Checkout latency and availability do not depend on Cloud SQL.
 
 ---
 
-6. Example API Interaction (simplified)
+7. Example API Interaction (simplified)
 
 > Note: Request/response formats are simplified and anonymized.
 
@@ -159,5 +168,22 @@ Response:
       "currency": "USD",
       "total_price": "2499"
     }
+
+
+8. Impact
+
+- Reliability: Since launch, there have been no user-visible incidents
+  attributable to this shipping rate service in production.
+
+- Performance: Internal logs show end-to-end response times for shipping
+  rate requests consistently under 100 ms, keeping checkout latency impact
+  negligible.
+
+- Operational agility: Shipping rules can be updated by the operations team
+  directly in Google Sheets and applied immediately via `/force-reload`,
+  without any code changes or redeployments.
+
+- Resilience: Checkout does not depend on Cloud SQL, and cache snapshots
+  in GCS allow the service to recover quickly from failures or restarts.
   ]
 }

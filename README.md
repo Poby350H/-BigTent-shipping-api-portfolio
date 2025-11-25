@@ -61,15 +61,15 @@ I built a cache-first Shipping Rate API behind Shopify’s CarrierService:
 
 High-level flow:
 
-1. Shopify Checkout calls the CarrierService REST API.
-2. Request goes through the HTTPS Load Balancer to the nearest healthy
+A. Shopify Checkout calls the CarrierService REST API.
+B. Request goes through the HTTPS Load Balancer to the nearest healthy
    Cloud Run region.
-3. The Shipping Rate API:
+C. The Shipping Rate API:
    - Verifies the **Shopify HMAC** using the app secret.
    - Looks up rates from the **in-memory cache**.
    - Returns rates to Shopify in the expected format.
      
-4. Shipping rules are loaded and refreshed as follows:
+D. Shipping rules are loaded and refreshed as follows:
 
 - On service startup (init):
   - The API first tries to load the latest cache snapshot from Google Cloud Storage (GCS).
@@ -85,7 +85,7 @@ High-level flow:
     an admin can trigger `/force-reload` to force-pull from Google Sheets and
     update both the in-memory cache and the GCS snapshot.
     
-5. The current cache is periodically saved to **Cloud Storage** as
+E. The current cache is periodically saved to **Cloud Storage** as
    snapshots. Snapshots can be:
    - Used for **DR/restore**.
    - Exported asynchronously to Cloud SQL for reporting and analysis.
@@ -95,8 +95,8 @@ Checkout latency and availability do not depend on Cloud SQL.
 
 5. Tech Stack
 
-- Backend: Python (Flask), Shopify CarrierService REST API  
-- Infra: Google Cloud Run, Cloud Load Balancing, Cloud Scheduler  
+- Backend: Backend: Python REST API integrated with Shopify CarrierService  
+- Infra: Google Cloud (Google Cloud Run, Cloud Load Balancing, Cloud Scheduler)  
 - Data: Google Sheets (gspread + Application Default Credentials),  
   Cloud Storage (cache snapshots), Cloud SQL (PostgreSQL – analytics only)  
 - Security & Auth: IAM Service Account, HMAC verification, environment-based secrets
@@ -134,43 +134,7 @@ Checkout latency and availability do not depend on Cloud SQL.
 
 ---
 
-7. Example API Interaction (simplified)
-
-> Note: Request/response formats are simplified and anonymized.
-
-Request (from Shopify CarrierService):
-
-```http
-POST /shopify_shipping
-Content-Type: application/json
-X-Shopify-Hmac-Sha256: <HMAC_SIGNATURE>
-X-Shopify-Shop-Domain: example-shop.myshopify.com
-
-{
-  "destination": {
-    "country": "US",
-    "postal_code": "90001"
-  },
-  "items": [
-    {"sku": "ABC-123", "quantity": 1, "grams": 1200},
-    {"sku": "ACC-456", "quantity": 2, "grams": 300}
-  ]
-}
-
-
-Response:
-
-{
-  "rates": [
-    {
-      "service_name": "DHL",
-      "rate_version": "V1001",
-      "currency": "USD",
-      "total_price": "2499"
-    }
-
-
-8. Impact
+7. Impact
 
 - Reliability: Since launch, there have been no user-visible incidents
   attributable to this shipping rate service in production.
@@ -185,5 +149,4 @@ Response:
 
 - Resilience: Checkout does not depend on Cloud SQL, and cache snapshots
   in GCS allow the service to recover quickly from failures or restarts.
-  ]
-}
+

@@ -62,8 +62,10 @@ I built a cache-first Shipping Rate API behind Shopify’s CarrierService:
 High-level flow:
 
 A. Shopify Checkout calls the CarrierService REST API.
+
 B. Request goes through the HTTPS Load Balancer to the nearest healthy
    Cloud Run region.
+   
 C. The Shipping Rate API:
    - Verifies the **Shopify HMAC** using the app secret.
    - Looks up rates from the **in-memory cache**.
@@ -96,7 +98,7 @@ Checkout latency and availability do not depend on Cloud SQL.
 
 5. Tech Stack
 
-- Backend: Backend: Python REST API integrated with Shopify CarrierService  
+- Backend:Python(Flask) REST API integrated with Shopify CarrierService  
 - Infra: Google Cloud (Google Cloud Run, Cloud Load Balancing, Cloud Scheduler)  
 - Data: Google Sheets (gspread + Application Default Credentials),  
   Cloud Storage (cache snapshots), Cloud SQL (PostgreSQL – analytics only)  
